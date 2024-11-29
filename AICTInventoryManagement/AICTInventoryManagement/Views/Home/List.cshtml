@@ -1,0 +1,146 @@
+﻿@model IEnumerable<AICTInventoryManagement.Models.RequisitionItem>
+@{
+    var deleteMessage = ViewBag.DeleteMessage as string;
+    // Get the logged-in user's empcode from the session
+    string loggedInEmpCode = Context.Session.GetString("EmpCode");
+    string loggedInRole = Context.Session.GetString("role");
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if (!string.IsNullOrEmpty(deleteMessage))
+{
+    <script type="text/javascript">
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: '@deleteMessage',
+            showConfirmButton: true
+        });
+    </script>
+}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+
+<!-- Buttons extension CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DataTables JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+
+<!-- Buttons extension JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
+
+<!-- JSZip for Excel export -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<!-- PDFMake for PDF export -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+
+<!-- Buttons HTML5 export -->
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
+
+<style>
+    .dt-button {
+        background-color: red;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        margin: 5px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .dt-button:hover {
+        background-color: darkred;
+    }
+</style>
+
+<h1 style="text-align:center;">All Requisitions</h1>
+<table id="productsTable" class="display">
+    <thead>
+        <tr>
+            <th>Requisition Code</th>
+            <th>EmployeeName</th>
+            <th>Department</th>
+            <th>Requisition Date</th>
+            <th>Status</th>
+            <th>PendingBy</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var requisition in Model)
+        {
+            <tr>
+                <td>@requisition.RequisitionCode</td>
+                <td>@requisition.EmployeeName</td>
+                <td>@requisition.Department</td>
+                <td>@requisition.RequisitionDate?.ToString("dd-MM-yyyy")</td>
+                <td>@requisition.Status</td>
+                <td>@requisition.PendingBy</td>
+                <td>
+                    @if (@requisition.Status == "Pending" && loggedInRole != "Employee" && loggedInRole != "Admin")
+                    {
+                        <a asp-action="Approval" asp-controller="Home" asp-route-id="@requisition.Id" title="Approval">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    }
+                    @if (@requisition.Status == "Approved" && loggedInRole == "Admin")
+                    {
+                        <a asp-action="Approval" asp-controller="Home" asp-route-id="@requisition.Id" title="Approval">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    }
+                    <a asp-action="View" asp-controller="Home" asp-route-id="@requisition.Id" title="View" class="mx-2">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a asp-action="DeleteProduct" asp-controller="Home" asp-route-id="@requisition.Id" title="Delete" onclick="return confirm('Are you sure you want to delete this item?');">
+                        <i class="fas fa-trash-alt"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Requisition" asp-controller="Home" class="btn btn-primary mt-3">Add New Requisition</a>
+
+<script>
+    $(document).ready(function () {
+        $('#productsTable').DataTable();
+    });
+
+    $('#productsTable').DataTable({
+        paging: true,
+        searching: true,
+        ordering: false,
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excel',
+                text: '<i class="fas fa-file-excel"></i> Excel',
+                titleAttr: 'Export to Excel'
+            },
+            {
+                extend: 'pdf',
+                text: '<i class="fas fa-download"></i> Download',
+                titleAttr: 'Download as PDF'
+            },
+            {
+                extend: 'print',
+                text: '<i class="fas fa-print"></i> Print',
+                titleAttr: 'Print Table'
+            }
+        ]
+    });
+</script>

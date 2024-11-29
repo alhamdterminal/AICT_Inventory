@@ -1,0 +1,118 @@
+﻿@model IEnumerable<AICTInventoryManagement.Models.InventoryHistories>
+@* @{
+    ViewData["Title"] = "Inventory History for " + ViewBag.ProductName;
+} *@  
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+
+<!-- Buttons extension CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DataTables JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+
+<!-- Buttons extension JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
+
+<!-- JSZip for Excel export -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<!-- PDFMake for PDF export -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+
+<!-- Buttons HTML5 export -->
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
+
+<style>
+    .dt-button {
+        background-color: red;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        margin: 5px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+        .dt-button:hover {
+            background-color: darkred;
+        }
+</style>
+
+<h1 style="text-align:center;">Inventory History for @ViewBag.ProductName</h1>
+<table id="productsTable" class="display">
+    <thead>
+        <tr>
+            <th>Product Code</th>
+            <th>Product Name</th>
+            <th>Available Stock</th>
+            <th>Issued Quantity</th>
+            <th>Remaining Stock</th>
+            <th>Action</th>
+            <th>Requisition Code</th>
+            <th>Issue Date</th>
+            
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var requisition in Model)
+        {
+            <tr>
+                <td>@requisition.ProductCode</td>
+                <td>@ViewBag.ProductName</td>
+                <td>@requisition.PreviousStock</td>
+                <td>@requisition.RequiredQuantity</td>
+                <td>@requisition.AvailableStock</td>
+                <td>@requisition.Action</td>
+                <td>@requisition.RequisitionCode</td>
+                <td>@requisition.ChangeDate?.ToString("dd-MM-yyyy")</td>
+               
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="CheckInventoryHistory" asp-controller="Home" class="btn btn-primary mt-3">Back</a>
+
+<script>
+    $(document).ready(function () {
+        $('#productsTable').DataTable();
+    });
+
+    $('#productsTable').DataTable({
+        paging: true,
+        searching: true,
+        ordering: false,
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excel',
+                text: '<i class="fas fa-file-excel"></i> Excel',
+                titleAttr: 'Export to Excel'
+            },
+            {
+                extend: 'pdf',
+                text: '<i class="fas fa-download"></i> Download',
+                titleAttr: 'Download as PDF'
+            },
+            {
+                extend: 'print',
+                text: '<i class="fas fa-print"></i> Print',
+                titleAttr: 'Print Table'
+            }
+        ]
+    });
+</script>

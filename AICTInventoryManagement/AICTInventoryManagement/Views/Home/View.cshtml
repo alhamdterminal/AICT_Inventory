@@ -1,0 +1,242 @@
+﻿@model ApprovalRequisitionViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Inventory Management Form</title>
+    <style>
+        .table-bordered {
+            border: 1px solid;
+            border-collapse: collapse;
+        }
+
+            .table-bordered th, .table-bordered td {
+                border: 1px solid;
+                padding: 8px;
+                text-align: left;
+            }
+
+        .form-control {
+            border: 1px solid #ced4da;
+        }
+
+        .no-border {
+            border: none;
+            background-color: transparent;
+            box-shadow: none;
+        }
+
+        .employee-details td, .employee-details th {
+            padding: 2px 5px;
+            vertical-align: middle;
+        }
+
+        .btn-container {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        #select-all-cell {
+            text-align: left; /* Align "Select All" checkbox to the left */
+            padding-left: 10px; /* Add some padding */
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container mt-5">
+        <div class="form-container">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-primary">Approval Requisition Form</h3>
+                </div>
+
+                @if (Model.Requisition != null)
+                {
+                    <div class="card-body employee-details">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width:15%;">Employee Code:</th>
+                                <td><input style="outline:none;" type="text" class="no-border" id="employeeCode" value="@Model.Requisition.EmployeeCode" readonly required></td>
+                                <th style="width:15%;">Employee Name:</th>
+                                <td><input style="outline:none;" type="text" class="no-border" id="employeeName" value="@Model.Requisition.EmployeeName" readonly required></td>
+                                <th style="width:15%;">Requisition Date:</th>
+                                <td>
+                                    <span class="no-border" id="requisitionDateDisplay">
+                                        @(Model.Requisition.RequisitionDate?.ToString("dd-MM-yyyy") ?? "N/A")
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:15%;">Requisition Code:</th>
+                                <td><input type="text" class="no-border" id="requisitioncode" value="@Model.Requisition.RequisitionCode" readonly required></td>
+                                <th style="width:15%;">Department:</th>
+                                <td><input type="text" class="no-border" id="employeeDept" value="@Model.Requisition.Department" readonly required></td>
+                                <th style="width:20%;">Requisition Deadline:</th>
+                                <td>
+                                    <span class="no-border" id="requisitionDeadlineDisplay">
+                                        @(Model.Requisition.RequisitionDeadline?.ToString("dd-MM-yyyy") ?? "N/A")
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                }
+
+                <!-- Product Tab Section -->
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="product-tab" data-toggle="tab" href="#product" role="tab" aria-controls="product" aria-selected="true">Product</a>
+                        </li>
+                        <!-- Inventory Tab -->
+                       @*  <li class="nav-item">
+                            <a class="nav-link" id="inventory-tab" data-toggle="tab" href="#inventory" role="tab" aria-controls="inventory" aria-selected="false">Inventory</a>
+                        </li> *@
+                    </ul>
+
+                    <div class="tab-content mt-3" id="myTabContent">
+                        <!-- Product Tab Content -->
+                        <div class="tab-pane fade show active" id="product" role="tabpanel" aria-labelledby="product-tab">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr id="select-header-row">
+                                        <!-- Select All Checkbox (initially hidden) -->
+                                       @*  <th id="select-all-cell" style="display:none;">
+                                            <input type="checkbox" id="selectAllCheckbox"> Select All
+                                        </th> *@
+                                        @*  <th id="select-column" style="display:none;">Select</th> *@ <!-- Initially hidden -->
+                                        <th>Product Code</th>
+                                        <th>Product Name</th>
+                                        <th>Required Quantity</th>
+                                       @*  <th>Available Stock</th> *@
+                                        <th>Purpose</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="product-table-body">
+                                    @foreach (var item in Model.RequisitionItems)
+                                    {
+                                        <tr class="product-row" id="row_@item.Id">
+                                           @*  <td class="checkbox-cell" style="display:none;">
+                                                <input type="checkbox" class="select-checkbox" id="checkbox_@item.Id">
+                                            </td> *@
+                                            <td><input type="text" class="form-control" id="ItemCode@item.Id" value="@item.ItemCode" readonly></td>
+                                            <td><input type="text" class="form-control" id="itemDescription_@item.Id" value="@item.ItemName" readonly></td>
+                                            <td>
+                                                <input type="text" class="form-control" id="QuantityMeasurement_@item.Id" value="@item.Quantity @item.MeasurementUnit" readonly>
+                                            </td>
+                                           @*  <td>
+                                               
+                                                @foreach (var inventoryItem in Model.InventoryItems)
+                                                {
+                                                    @if (inventoryItem.ItemCode == item.ItemCode)
+                                                    {
+                                                        <input type="text" class="form-control" value="@inventoryItem.Quantity" readonly>
+                                                    }
+                                                }
+                                            </td> *@
+                                            <td><input type="text" class="form-control" id="Purpose_@item.Id" value="@item.Purpose" readonly></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+
+
+                        <!-- Inventory Tab Content -->
+                        @* <div class="tab-pane fade" id="inventory" role="tabpanel" aria-labelledby="inventory-tab">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Product Code</th>
+                                        <th>Product Name</th>
+                                        <th>Available Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.InventoryItems)
+                                    {
+                                        <tr>
+                                            <td><input type="text" class="form-control" id="inventoryItemCode_@item.ItemCode" value="@item.ItemCode" readonly></td>
+                                            <td><input type="text" class="form-control" id="inventoryItemName_@item.Items" value="@item.Items" readonly></td>
+                                            <td><input type="text" class="form-control" id="inventoryQuantity_@item.Quantity" value="@item.Quantity" readonly></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div> *@
+                    </div>
+                
+                    <!-- Comment Section -->
+                    <div class="comment-section">
+                        <h4>Comments</h4>
+                            <textarea class="form-control" id="commentBox"  placeholder="Enter your comments here..." readonly> @Model.Requisition.Comments</textarea>
+                    </div>
+                
+                </div>
+
+            </div>
+            <a asp-action="PendingList" asp-controller="Home" class="btn btn-primary mt-3">Back</a>
+            <!-- Action Buttons -->
+          @*   <div class="btn-container">
+                <button type="button" class="btn btn-success" onclick="approveRequisition()">Approve</button>
+                <button type="button" class="btn btn-danger" onclick="rejectRequisition()">Reject</button>
+            </div> *@
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        
+
+        // $(document).ready(function () {
+        //     // Check if the table has more than one row (excluding the header)
+        //     var rowCount = $("#product-table-body tr").length;
+
+        //     // If there are multiple rows, show the select column and "Select All" checkbox
+        //     if (rowCount > 1) {
+        //         $("#select-column").show();  // Show the "Select" column
+        //         $(".checkbox-cell").show();  // Show checkboxes in the rows
+        //         $("#select-all-cell").show();  // Show the "Select All" checkbox
+        //     } else {
+        //         $("#select-column").hide();  // Hide the "Select" column
+        //         $(".checkbox-cell").hide();  // Hide checkboxes in the rows
+        //         $("#select-all-cell").hide();  // Hide the "Select All" checkbox
+        //     }
+
+        //     // Add event listener for checkbox change (individual row selection)
+        //     $(".select-checkbox").change(function () {
+        //         var row = $(this).closest("tr"); // Get the closest <tr> for the clicked checkbox
+
+        //         // Toggle the 'selected' class when checkbox is checked/unchecked
+        //         if ($(this).prop("checked")) {
+        //             row.addClass("selected");
+        //         } else {
+        //             row.removeClass("selected");
+        //         }
+
+        //         // If all individual checkboxes are checked, mark "Select All" as checked
+        //         var allChecked = $(".select-checkbox:checked").length === $(".select-checkbox").length;
+        //         $("#selectAllCheckbox").prop("checked", allChecked);
+        //     });
+
+        //     // Add event listener for "Select All" checkbox change
+        //     $("#selectAllCheckbox").change(function () {
+        //         var isChecked = $(this).prop("checked");
+
+        //         // Check or uncheck all row checkboxes based on the "Select All" checkbox state
+        //         $(".select-checkbox").prop("checked", isChecked).trigger("change");  // Trigger the change event to update row selection
+        //     });
+        // });
+
+
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

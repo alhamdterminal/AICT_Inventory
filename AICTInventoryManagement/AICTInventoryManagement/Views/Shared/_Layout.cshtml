@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <!-- Add this in the <head> section of _Layout.cshtml -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <link rel="stylesheet" href="~/css/site.css" />
+    <title>@ViewData["Title"] - Inventory Dashboard</title>
+    <style>
+        /* Custom Styles */
+        body {
+            background-color: #f8f9fa;
+        }
+
+        #wrapper {
+            display: flex;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        #sidebar-wrapper {
+            min-height: 100vh;
+            background: #007bff; /* Unique header color */
+            transition: all 0.3s ease;
+            width: 250px; /* Width of the sidebar */
+        }
+
+        .sidebar-heading {
+            font-size: 1.75rem;
+            font-weight: bold;
+            padding: 1rem;
+            color: #fff;
+            text-align: center;
+            background: #0056b3; /* Darker shade for the header */
+        }
+
+        .list-group-item {
+            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .list-group-item:hover {
+                background-color: #0056b3;
+                color: #ffffff;
+            }
+
+            .list-group-item.active {
+                background-color: #0056b3;
+                color: #ffffff;
+            }
+
+        .dropdown-toggle::after {
+            content: "";
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            display: inline-block;
+            padding: 3px;
+            transform: rotate(45deg);
+            margin-left: 5px;
+        }
+
+        .collapse {
+            background: #0069d9; /* Lighter shade for submenu */
+        }
+
+            .collapse .list-group-item {
+                padding-left: 2rem; /* Indent submenu items */
+            }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        /* Styles for toggled state */
+        #wrapper.toggled #sidebar-wrapper {
+            margin-left: -250px; /* Hide the sidebar */
+        }
+
+        #page-content-wrapper {
+            flex: 1; /* Allow the main content to expand */
+            transition: all 0.3s ease;
+        }
+        /* Hamburger Icon */
+        .navbar-toggler {
+            border: none;
+        }
+
+        .navbar-toggler-icon {
+            background-color: transparent; /* Make background transparent */
+        }
+
+            .navbar-toggler-icon:before,
+            .navbar-toggler-icon:after,
+            .navbar-toggler-icon div {
+                content: "";
+                display: block;
+                width: 30px;
+                height: 3px;
+                background-color: #007bff; /* Hamburger color */
+                margin: 5px 0;
+                transition: all 0.3s;
+            }
+    </style>
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-dark border-right" id="sidebar-wrapper">
+            <div class="sidebar-heading">AICT Inventory</div>
+            <div class="list-group list-group-flush">
+                <a asp-action="Index" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">Dashboard</a>
+                <a href="#productsSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle list-group-item list-group-item-action bg-dark text-white">PreRequisitions</a>
+                <div class="collapse" id="productsSubmenu">
+                    <a asp-action="Requisition" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">Requisition Form</a>
+                    @*  <a asp-action="PreRequisitionForm" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">Create Requisition</a>
+                    <a asp-action="PreRequisitionList" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">All Requisitions</a> *@
+                    <a asp-action="List" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">All Requisitions List</a>
+                    <a asp-action="PendingList" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">Pending Requisitions </a>
+                    <a asp-action="ApprovedList" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">Approval Requisitions </a>
+                    <a asp-action="CompleteList" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">Completed Requisitions </a>
+                    <a asp-action="RejectList" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">Rejected Requisitions </a>
+                    @*  <a href="#furtherProductsSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle list-group-item list-group-item-action bg-dark text-white">Manage Inventory</a>
+                    <div class="collapse" id="furtherProductsSubmenu">
+                    <a asp-action="ManageInventory" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">Add Inventory</a>
+
+                    </div>  *@
+
+                    @*  <a href="/products/new" class="list-group-item list-group-item-action bg-dark text-white">New Arrivals</a>
+                    *@
+                </div>
+                @if (Context.Session.GetString("role") == "Admin")
+{
+                <a href="#categoriesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle list-group-item list-group-item-action bg-dark text-white">Manage Inventory</a>
+                <div class="collapse" id="categoriesSubmenu">
+                    <a asp-action="ManageInventory" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">Add Inventory</a>
+                    <a asp-action="InventoryList" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">Inventory List</a>
+                        <a asp-action="CheckInventoryHistory" asp-controller="Home" class="list-group-item list-group-item-action bg-dark text-white">Check Inventory History</a>
+
+                </div>
+}
+                @*  <a href="#suppliersSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle list-group-item list-group-item-action bg-dark text-white">Suppliers</a>
+                <div class="collapse" id="suppliersSubmenu">
+                <a href="/suppliers/local" class="list-group-item list-group-item-action bg-dark text-white">Local Suppliers</a>
+                <a href="/suppliers/international" class="list-group-item list-group-item-action bg-dark text-white">International Suppliers</a>
+                </div>  *@
+            </div>
+        </div>
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <button class="navbar-toggler" id="menu-toggle" type="button" aria-label="Toggle navigation">
+                    <div class="navbar-toggler-icon"></div>
+                </button>
+                <span style="text-align:right; width:100%" class="navbar-text">
+                    @if (Context.Session.GetString("EmpName") != null)
+                    {
+                        <span style="text-align:right; width:100%">Welcome, @Context.Session.GetString("EmpName")</span>
+
+                        <!-- Add space between welcome message and logout icon -->
+                        <a href="@Url.Action("Logout", "Home")" class="ms-4 text-decoration-none" style="margin-left:10px;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Welcome, Guest</span>
+                    }
+                </span>
+
+            </nav>
+            <div class="container-fluid">
+                <h1 class="mt-4">@ViewData["Title"]</h1>
+                <div class="content">
+                    @RenderBody()
+                </div>
+            </div>
+            @* <footer class="footer mt-auto py-3 bg-light">
+            <div class="container">
+            <span class="text-muted">© 2024 Inventory System. All rights reserved.</span>
+            </div>
+            </footer> *@
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $("#menu-toggle").click(function (e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+    </script>
+</body>
+</html>

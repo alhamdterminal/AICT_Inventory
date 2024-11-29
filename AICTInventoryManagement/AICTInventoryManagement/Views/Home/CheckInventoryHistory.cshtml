@@ -1,0 +1,20 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    ViewData["Title"] = "Check Consumption";
+}
+
+<!-- Form for the dropdown and search button -->
+<form method="get" action="@Url.Action("SearchInventoryHistory", "Home")">
+    <div class="form-group d-flex align-items-center">
+       
+        <select id="productDropdown" name="productCode" class="form-control form-control-sm mr-2" style="max-width: 250px;">
+            <option value="">--Select a Product--</option>
+            @foreach (var product in Model)
+            {
+                <option value="@product.ProductCode">@product.ProductCode _@product.ProductName </option>
+            }
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Search</button>
+    </div>
+</form>

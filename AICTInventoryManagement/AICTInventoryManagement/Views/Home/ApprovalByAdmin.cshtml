@@ -1,0 +1,315 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <title>Inventory Management Form</title>
+
+    <style>
+        .table-bordered {
+            border: 1px solid;
+            border-collapse: collapse;
+        }
+
+            .table-bordered th, .table-bordered td {
+                border: 1px solid;
+                padding: 8px;
+                text-align: left;
+            }
+
+        .form-control {
+            border: 1px solid #ced4da;
+        }
+
+        .no-border {
+            border: none;
+            background-color: transparent;
+            box-shadow: none;
+        }
+
+        .employee-details td, .employee-details th {
+            padding: 2px 5px;
+            vertical-align: middle;
+        }
+
+        .btn-container {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        #select-all-cell {
+            text-align: left;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container mt-5">
+        <div class="form-container">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-primary">Approval Requisition Form</h3>
+                </div>
+
+                @if (Model.Requisition != null)
+                {
+                    <div class="card-body employee-details">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width:15%;">Employee Code:</th>
+                                <td><input style="outline:none;" type="text" class="no-border" id="employeeCode" value="@Model.Requisition.EmployeeCode" readonly></td>
+                                <th style="width:15%;">Employee Name:</th>
+                                <td><input style="outline:none;" type="text" class="no-border" id="employeeName" value="@Model.Requisition.EmployeeName" readonly></td>
+                                <th style="width:15%;">Requisition Date:</th>
+                                <td>
+                                    <span class="no-border" id="requisitionDateDisplay">
+                                        @(Model.Requisition.RequisitionDate?.ToString("dd-MM-yyyy") ?? "N/A")
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:15%;">Requisition Code:</th>
+                                <td><input type="text" class="no-border" id="requisitioncode" value="@Model.Requisition.RequisitionCode" readonly></td>
+                                <th style="width:15%;">Department:</th>
+                                <td><input type="text" class="no-border" id="employeeDept" value="@Model.Requisition.Department" readonly></td>
+                                <th style="width:20%;">Requisition Deadline:</th>
+                                <td>
+                                    <span class="no-border" id="requisitionDeadlineDisplay">
+                                        @(Model.Requisition.RequisitionDeadline?.ToString("dd-MM-yyyy") ?? "N/A")
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                }
+
+                
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="product-tab" data-toggle="tab" href="#product" role="tab" aria-controls="product" aria-selected="true">Product</a>
+                        </li>
+                        
+                        <li class="nav-item">
+                            <a class="nav-link" id="inventory-tab" data-toggle="tab" href="#inventory" role="tab" aria-controls="inventory" aria-selected="false">Inventory</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-3" id="myTabContent">
+                       
+                        <div class="tab-pane fade show active" id="product" role="tabpanel" aria-labelledby="product-tab">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th id="select-all-cell" style="width: 10%; text-align:left;">
+                                            <input type="checkbox" id="selectAllCheckbox"> Select All
+                                        </th>
+                                        <th>Product Code</th>
+                                        <th>Product Name</th>
+                                        <th>Required Quantity</th>
+                                        <th>Available Stock</th>
+                                        <th>Purpose</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="product-table-body">
+                                    @foreach (var item in Model.RequisitionItems)
+                                    {
+                                        <tr class="product-row" id="row_@item.Id">
+                                            <td class="checkbox-cell">
+                                                <input type="checkbox" class="select-checkbox" id="checkbox_@item.Id">
+                                            </td>
+                                            <td><input type="text" class="form-control" id="ItemCode@item.ItemId" value="@item.ItemCode" readonly></td>
+                                            <td><input type="text" class="form-control" id="itemDescription_@item.Id" value="@item.ItemName" readonly></td>
+                                            <td>
+                                                <input type="text" class="form-control" id="QuantityMeasurement_@item.Id"
+                                                       value="@item.Quantity @item.MeasurementUnit"
+                                                       onfocus="this.value = this.value.split(' ')[0]"
+                                                       onblur="this.value = this.value.trim() + ' @item.MeasurementUnit';">
+                                            </td>
+                                            <td>
+                                                @foreach (var inventoryItem in Model.InventoryItems)
+                                                {
+                                                    @if (inventoryItem.ItemCode == item.ItemCode)
+                                                    {
+                                                        <input type="text" class="form-control" value="@inventoryItem.Quantity" readonly>
+                                                    }
+                                                }
+                                            </td>
+                                            <td><input type="text" class="form-control" id="Purpose_@item.Id" value="@item.Purpose" readonly></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="inventory" role="tabpanel" aria-labelledby="inventory-tab">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Product Code</th>
+                                        <th>Product Name</th>
+                                        <th>Available Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.InventoryItems)
+                                    {
+                                        <tr>
+                                            <td><input type="text" class="form-control" id="inventoryItemCode_@item.ItemCode" value="@item.ItemCode" readonly></td>
+                                            <td><input type="text" class="form-control" id="inventoryItemName_@item.Items" value="@item.Items" readonly></td>
+                                            <td><input type="text" class="form-control" id="inventoryQuantity_@item.Quantity" value="@item.Quantity" readonly></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="comment-section">
+                        <h4>Comments</h4>
+                        <textarea class="form-control" id="commentBox" placeholder="Enter your comments here..."></textarea>
+                    </div>
+                </div>
+                    </div>
+
+            </div>
+
+            
+        <form id="approvalForm" action="@Url.Action("Approved", "Home")" method="POST">
+            <input type="hidden" name="RequisitionCode" id="RequisitionCode" value="@Model.Requisition.RequisitionCode">
+            <input type="hidden" name="SelectedItems" id="SelectedItems">
+            <input type="hidden" name="Comment" id="CommentBox">
+            <input type="hidden" name="Reject" id="RejectFlag" value="false">  
+            
+            <div class="btn-container">
+                <button type="button" class="btn btn-success" id="approveButton">Issue</button>
+                <button type="button" class="btn btn-danger" id="rejectButton">Reject</button>
+            </div>
+        </form>
+
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+
+            
+            $("#selectAllCheckbox").change(function () {
+                var isChecked = $(this).prop("checked");
+                $(".select-checkbox").prop("checked", isChecked); 
+            });
+
+           
+            $(".select-checkbox").change(function () {
+                var row = $(this).closest("tr");
+                if ($(this).prop("checked")) {
+                    row.addClass("selected");
+                } else {
+                    row.removeClass("selected");
+                }
+
+               
+                var allChecked = $(".select-checkbox:checked").length === $(".select-checkbox").length;
+                $("#selectAllCheckbox").prop("checked", allChecked);
+            });
+
+            
+            
+            $("#approveButton").click(function () {
+                var selectedItems = [];
+                var comment = $("#commentBox").val();
+               
+
+                
+                $(".select-checkbox:checked").each(function () {
+                    var row = $(this).closest("tr");
+                    var itemId = parseInt(row.attr("id").split('_')[1]); 
+
+                    var originalQuantity = parseInt($('#QuantityMeasurement_' + itemId).val().split(' ')[0]); 
+                    var modifiedQuantity = $('#QuantityMeasurement_' + itemId).val().split(' ')[0]; 
+
+                   
+                    if (modifiedQuantity !== originalQuantity.toString()) {
+                        originalQuantity = parseInt(modifiedQuantity); 
+                    }
+
+                    
+
+                   // var ItemCode = row.find("td").eq(0).text(); // Adjust the index according to where the itemCode is
+                    var itemCode = row.find("td").eq(1).find("input").val();
+                    selectedItems.push({
+                        ItemId: itemId,
+                        Quantity: originalQuantity,
+                        ItemCode: itemCode // Add itemCode to the object
+                    });
+                   
+                });
+
+               
+                if (selectedItems.length === 0) {
+                    alert("Please select at least one item to approve.");
+                    return;
+                }
+
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "Do you want to Issue the selected items?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Issue',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $("#SelectedItems").val(JSON.stringify(selectedItems));
+                        $("#CommentBox").val(comment);
+                        $("#RejectFlag").val("false");
+                        $("#approvalForm").submit();
+
+
+
+
+                    }
+
+                });
+            });
+            
+
+
+        // Handle Reject button click
+        $("#rejectButton").click(function () {
+            var comment = $("#commentBox").val();
+
+            // SweetAlert confirmation before submitting
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you want to reject the requisition?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Reject',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $("#RejectFlag").val("true");
+                    $("#CommentBox").val(comment);
+                    $("#approvalForm").submit();
+
+
+
+                }
+            });
+        });
+
+                });
+
+    </script>
+
+</body>
+</html>

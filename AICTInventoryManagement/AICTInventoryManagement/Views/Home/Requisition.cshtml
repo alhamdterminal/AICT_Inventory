@@ -1,0 +1,486 @@
+﻿@model AICTInventoryManagement.Models.RequisitionForm
+@{
+    // Getting the EmployeeCode from session
+    var employeeCodeFromSession = Context.Session.GetString("EmpCode");
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Styles -->
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .section-heading {
+        margin-bottom: 20px;
+    }
+
+        .section-heading h4 {
+            color: #007bff;
+        }
+
+    .table-container {
+        margin-top: 20px;
+    }
+
+    .table {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .form-group input {
+        border-radius: 4px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        font-size: 16px;
+    }
+
+    .btn-danger {
+        font-size: 14px;
+    }
+
+    .table-striped tbody tr:nth-child(odd) {
+        background-color: #f9f9f9;
+    }
+
+    .table-striped tbody tr:hover {
+        background-color: #e2e6ea;
+    }
+
+    .select-width {
+        width: 180px; /* Reduced width for the select dropdown */
+    }
+
+    .remove-icon i {
+        font-size: 18px;
+    }
+
+    .remove-icon {
+        padding: 5px 10px;
+        color: red;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+    }
+
+        .remove-icon:hover {
+            color: red;
+        }
+</style>
+
+<form id="requisitionForm" method="post" asp-action="Submit">
+    <!-- Pre-Requisition Form Heading -->
+    <div class="section-heading text-center mb-4">
+        <h2 class="font-weight-bold text-primary">Pre-Requisition Form</h2>
+    </div>
+
+    <!-- Employee Details Section -->
+    <div class="section-heading text-left mb-4">
+        <h4 class="font-weight-bold">Employee Details</h4>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="employeeCode" class="font-weight-semibold">Employee Code</label>
+                <input type="text" class="form-control" name="EmployeeCode" id="employeeCode" placeholder="Enter Employee Code" required />
+            </div>
+            <div class="form-group">
+                <label for="employeeName" class="font-weight-semibold">Employee Name</label>
+                <input type="text" class="form-control" name="EmployeeName" id="Empname" placeholder="Employee Name" readonly required />
+            </div>
+            <div class="form-group">
+                <label for="department" class="font-weight-semibold">Department</label>
+                <input type="text" class="form-control" name="Department" id="department" placeholder="Enter Department Name" readonly required />
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="requisitionDate" class="font-weight-semibold">Requisition Date</label>
+                <input type="date" class="form-control" name="RequisitionDate" id="requisitionDateDisplay" readonly required />
+            </div>
+
+            <div class="form-group">
+                <label for="requisitionDeadline" class="font-weight-semibold">Requisition Deadline</label>
+                <input type="date" class="form-control" name="RequisitionDeadline" id="requisitionDeadline" required />
+            </div>
+        </div>
+    </div>
+
+    <!-- Item Details Section -->
+    <div class="section-heading text-left mb-4">
+        <h4 class="font-weight-bold">Product Details</h4>
+    </div>
+
+    <div class="form-group mb-4">
+        <label for="itemCode" class="font-weight-semibold">Select Product Code</label>
+        <select id="itemCode" class="form-control form-control-sm select-width">
+            <option value="" disabled selected>Select Product Code</option>
+        </select>
+    </div>
+
+    <!-- Table for Selected Items -->
+    <div class="table-container mb-4">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr class="text-center">
+                    <th>Product Code</th>
+                    <th>Product Name</th>
+                    <th>Required Quantity</th>
+                    <th>Measurement Unit</th>
+                    <th>Purpose</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="itemTableBody">
+                <!-- Rows will be added dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="text-center mb-4">
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 200px;">Submit</button>
+    </div>
+</form>
+
+<script>
+    // Set today's date in the requisition date field
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var yyyy = today.getFullYear();
+    var formattedDate = yyyy + '-' + mm + '-' + dd;
+
+    document.getElementById("requisitionDateDisplay").value = formattedDate;
+
+    // Set today's date as the minimum allowed date for the Requisition Deadline
+    document.getElementById("requisitionDeadline").setAttribute("min", formattedDate);
+
+    // Get employee code from session or fallback to empty string
+    const employeeCodeFromSession = "@employeeCodeFromSession";  // Razor syntax to inject session value
+
+    // Automatically populate employee details if EmployeeCode exists in session
+    if (employeeCodeFromSession) {
+        // Prefill the EmployeeCode input field
+        document.getElementById("employeeCode").value = employeeCodeFromSession;
+        fetchEmployeeDetails(employeeCodeFromSession); // Fetch employee details using the code from session
+    }
+
+    // Fetch products
+    fetch('/Home/GetProducts')
+        .then(response => response.json())
+        .then(data => {
+            if (data && Array.isArray(data)) {
+                const itemSelect = document.getElementById("itemCode");
+
+                itemSelect.innerHTML = '<option value="" disabled selected>Select Product Code</option>';
+
+                data.forEach(product => {
+                    const option = document.createElement("option");
+                    option.value = product.productCode;
+                    option.textContent = `${product.productCode} - ${product.productName}`;
+                    itemSelect.appendChild(option);
+                });
+            } else {
+                console.error('Failed to load products');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching product data:', error);
+        });
+
+    // Fetch employee details based on EmployeeCode
+    function fetchEmployeeDetails(employeeCode) {
+        fetch(`/Home/GetEmployeeDetails?employeeCode=${employeeCode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById("Empname").value = data.empname;
+                    document.getElementById("department").value = data.department;
+                } else {
+                    alert(data.message || "An error occurred.");
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching employee details:", error);
+                alert("Failed to retrieve employee details.");
+            });
+    }
+
+    // Handle employee code change
+    document.getElementById("employeeCode").addEventListener("blur", function () {
+        const employeeCode = this.value.trim();
+        if (employeeCode !== "") {
+            fetchEmployeeDetails(employeeCode); // Fetch employee details when code is entered or changed
+        }
+    });
+
+    // Handle item selection from dropdown
+    document.getElementById("itemCode").addEventListener("change", function () {
+        const itemCode = this.value;
+
+        fetch(`/Home/GetProductDetails?productCode=${itemCode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    const item = data;
+                    const tableBody = document.getElementById("itemTableBody");
+
+                    const row = document.createElement("tr");
+                    row.classList.add("text-center");
+
+                    row.innerHTML = `
+                                <td>${item.productCode}</td>
+                                <td>${item.productName}</td>
+                                <td><input type="number" class="form-control" name="Items[${tableBody.rows.length}].Quantity" min="1" required /></td>
+                                <td>${item.measurementUnit}</td>
+                                <td>
+                                    ${item.productName.toLowerCase() === 'diesel' ?
+                            `<select class="form-control" name="Items[${tableBody.rows.length}].Purpose" required>
+                                        <option value="" disabled selected>Select Purpose</option>
+                                        <option value="ReachStacker">Reach Stacker</option>
+                                        <option value="Generator">Generator</option>
+                                        <option value="Forklifter">Fork lifter</option>
+                                        <option value="InternalTrailer">Internal Trailer</option>
+                                        <option value="RoadRoller/Excavator">Road Roller / Excavator</option>
+                                        <option value="CEOHouse">CEO House</option>
+                                        <option value="ChairmanHouse">Chairman House</option>
+                                    </select>` :
+                            `<input type="text" class="form-control" name="Items[${tableBody.rows.length}].Purpose" placeholder="Enter Purpose" required />`
+                        }
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-danger remove-icon" onclick="removeItem(this)">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            `;
+                    tableBody.appendChild(row);
+                    // Add hidden inputs for Product Code, Product Name, and Measurement Unit
+                    const form = document.getElementById("requisitionForm");
+
+                    const codeInput = document.createElement("input");
+                    codeInput.type = "hidden";
+                    codeInput.name = `Items[${tableBody.rows.length - 1}].Code`;
+                    codeInput.value = item.productCode;
+                    form.appendChild(codeInput);
+
+                    const nameInput = document.createElement("input");
+                    nameInput.type = "hidden";
+                    nameInput.name = `Items[${tableBody.rows.length - 1}].Name`;
+                    nameInput.value = item.productName;
+                    form.appendChild(nameInput);
+
+                    const measurementUnitInput = document.createElement("input");
+                    measurementUnitInput.type = "hidden";
+                    measurementUnitInput.name = `Items[${tableBody.rows.length - 1}].MeasurementUnit`;
+                    measurementUnitInput.value = item.measurementUnit;
+                    form.appendChild(measurementUnitInput);
+
+                    document.getElementById("itemCode").value = "";  // Reset the select field
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching product details:', error);
+            });
+    });
+
+    // Handle form submit
+    document.getElementById("requisitionForm").addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        // Ensure at least one item is added
+        const tableBody = document.getElementById("itemTableBody");
+        if (tableBody.rows.length === 0) {
+            alert("Please add at least one item to the requisition.");
+            return;
+        }
+
+        // Display SweetAlert2 success message
+        Swal.fire({
+            icon: 'success',
+            title: 'Successfully Submitted!',
+            text: 'Your requisition has been successfully submitted.',
+            confirmButtonText: 'OK'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // After the user clicks OK, submit the form
+                document.getElementById("requisitionForm").submit();
+            }
+        });
+    });
+
+    // Function to remove an item from the table
+    function removeItem(button) {
+        const row = button.closest("tr");
+        row.remove();
+    }
+</script>
+
+
+
+
+@* <script>
+
+   
+    // Set today's date in the requisition date field
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var yyyy = today.getFullYear();
+    var formattedDate = yyyy + '-' + mm + '-' + dd;
+
+    document.getElementById("requisitionDateDisplay").value = formattedDate;
+
+    // Get employee code from session or fallback to empty string
+    const employeeCodeFromSession = "@employeeCodeFromSession";  // Razor syntax to inject session value
+
+    // Automatically populate employee details if EmployeeCode exists in session
+    if (employeeCodeFromSession) {
+        // Prefill the EmployeeCode input field
+        document.getElementById("employeeCode").value = employeeCodeFromSession;
+        fetchEmployeeDetails(employeeCodeFromSession); // Fetch employee details using the code from session
+    }
+
+    // Fetch products
+    fetch('/Home/GetProducts')
+        .then(response => response.json())
+        .then(data => {
+            if (data && Array.isArray(data)) {
+                const itemSelect = document.getElementById("itemCode");
+
+                itemSelect.innerHTML = '<option value="" disabled selected>Select Product Code</option>';
+
+                data.forEach(product => {
+                    const option = document.createElement("option");
+                    option.value = product.productCode;
+                    option.textContent = `${product.productCode} - ${product.productName}`;
+                    itemSelect.appendChild(option);
+                });
+            } else {
+                console.error('Failed to load products');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching product data:', error);
+        });
+
+    // Fetch employee details based on EmployeeCode
+    function fetchEmployeeDetails(employeeCode) {
+        fetch(`/Home/GetEmployeeDetails?employeeCode=${employeeCode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById("Empname").value = data.empname;
+                    document.getElementById("department").value = data.department;
+                } else {
+                    alert(data.message || "An error occurred.");
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching employee details:", error);
+                alert("Failed to retrieve employee details.");
+            });
+    }
+
+    // Handle employee code change
+    document.getElementById("employeeCode").addEventListener("blur", function () {
+        const employeeCode = this.value.trim();
+        if (employeeCode !== "") {
+            fetchEmployeeDetails(employeeCode); // Fetch employee details when code is entered or changed
+        }
+    });
+
+    // Handle item selection from dropdown
+    document.getElementById("itemCode").addEventListener("change", function () {
+        const itemCode = this.value;
+
+        fetch(`/Home/GetProductDetails?productCode=${itemCode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    const item = data;
+                    const tableBody = document.getElementById("itemTableBody");
+
+                    const row = document.createElement("tr");
+                    row.classList.add("text-center");
+
+                    row.innerHTML = `
+                            <td>${item.productCode}</td>
+                            <td>${item.productName}</td>
+                            <td><input type="number" class="form-control" name="Items[${tableBody.rows.length}].Quantity" min="1" required /></td>
+                            <td>${item.measurementUnit}</td>
+                            <td>
+                                ${item.productName.toLowerCase() === 'diesel' ?
+                            `<select class="form-control" name="Items[${tableBody.rows.length}].Purpose" required>
+                                        <option value="" disabled selected>Select Purpose</option>
+                                        <option value="ReachStacker">Reach Stacker</option>
+                                        <option value="Generator">Generator</option>
+                                        <option value="Forklifter">Fork lifter</option>
+                                        <option value="InternalTrailer">Internal Trailer</option>
+                                        <option value="RoadRoller/Excavator">Road Roller / Excavator</option>
+                                        <option value="CEOHouse">CEO House</option>
+                                        <option value="ChairmanHouse">Chairman House</option>
+                                    </select>` :
+                            `<input type="text" class="form-control" name="Items[${tableBody.rows.length}].Purpose" placeholder="Enter Purpose" required />`
+                        }
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-danger remove-icon" onclick="removeItem(this)">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        `;
+                    tableBody.appendChild(row);
+                    // Add hidden inputs for Product Code, Product Name, and Measurement Unit
+                    const form = document.getElementById("requisitionForm");
+
+                    const codeInput = document.createElement("input");
+                    codeInput.type = "hidden";
+                    codeInput.name = `Items[${tableBody.rows.length - 1}].Code`;
+                    codeInput.value = item.productCode;
+                    form.appendChild(codeInput);
+
+                    const nameInput = document.createElement("input");
+                    nameInput.type = "hidden";
+                    nameInput.name = `Items[${tableBody.rows.length - 1}].Name`;
+                    nameInput.value = item.productName;
+                    form.appendChild(nameInput);
+
+                    const measurementUnitInput = document.createElement("input");
+                    measurementUnitInput.type = "hidden";
+                    measurementUnitInput.name = `Items[${tableBody.rows.length - 1}].MeasurementUnit`;
+                    measurementUnitInput.value = item.measurementUnit;
+                    form.appendChild(measurementUnitInput);
+
+                    document.getElementById("itemCode").value = "";
+                    document.getElementById("itemCode").value = "";
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching product details:', error);
+            });
+       
+    });
+    document.getElementById("requisitionForm").addEventListener("submit", function (event) {
+        const tableBody = document.getElementById("itemTableBody");
+        if (tableBody.rows.length === 0) {
+            event.preventDefault(); // Prevent form submission
+            alert("Please add at least one item to the requisition.");
+        }
+    });
+    // Function to remove an item from the table
+    function removeItem(button) {
+        const row = button.closest("tr");
+        row.remove();
+    }
+   
+    
+</script> *@

@@ -1,0 +1,170 @@
+﻿@model AICTInventoryManagement.Models.Requisition
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Inventory Management Form</title>
+    <style>
+        
+        .form-control {
+            border: 1px solid #ced4da; 
+        }
+
+        
+        .no-border {
+            border: none;
+            background-color: transparent; 
+            box-shadow: none; 
+        }
+
+        
+        .employee-details td, .employee-details th {
+            padding: 2px 5px;
+            vertical-align: middle; 
+        }
+
+            .employee-details td input,
+            .employee-details td span {
+                margin-bottom: 0; 
+            }
+
+       
+        .comment-section textarea {
+            margin-top: 15px;
+        }
+
+        .btn-container {
+            margin-top: 20px; 
+            margin-left: 0; 
+            text-align: left; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mt-5">
+        <div class="form-container">
+            
+            <div class="card">
+                
+                <div class="card-header">
+                    <h3 class="text-primary">Approval Requisition Form</h3>
+                </div>
+                <div class="card-body employee-details">
+                    <table class="table">
+                        <tr>
+                            <th style="width:15%;">Employee Name:</th>
+                            <td><input style="outline:none;" type="text" class="no-border" id="employeeName" value="@Model.EmployeeName" readonly></td>
+                            <th style="width:15%;">Requisition Date:</th>
+                            <td><span class="no-border" id="requisitionDateDisplay" readonly>@Model.RequisitionDate.ToString("dd-MM-yyyy") </span></td>
+                        </tr>
+                        <tr>
+                            <th style="width:15%;">Department:</th>
+                            <td><input type="text" class=" no-border" id="employeeDept" value="@Model.Department" readonly></td>
+                            <th style="width:15%;">Requisition Deadline:</th>
+                            <td><span class=" no-border" id="requisitionDeadlineDisplay" readonly>@Model.Deadline.ToString("dd-MM-yyyy")</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="product-tab" data-toggle="tab" href="#product" role="tab" aria-controls="product" aria-selected="true">Product</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="pricing-tab" data-toggle="tab" href="#pricing" role="tab" aria-controls="pricing" aria-selected="false">Pricing & Location</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="stock-tab" data-toggle="tab" href="#stock" role="tab" aria-controls="stock" aria-selected="false">Stock</a>
+                        </li>
+                    </ul>
+
+                    
+                    <div class="tab-content mt-3" id="myTabContent">
+                        
+                        <div class="tab-pane fade show active" id="product" role="tabpanel" aria-labelledby="product-tab">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Item ID/SKU</th>
+                                        <th>Item Description</th>
+                                        <th>Supplier/Vendor</th>
+                                        <th>Category</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="text" class="form-control" id="itemID" value="@Model.ItemId" readonly></td>
+                                        <td><input type="text" class="form-control" id="itemDescription" value="@Model.ItemDescription" readonly></td>
+                                        <td><input type="text" class="form-control" id="supplier" value="@Model.Supplier" readonly></td>
+                                        <td><input type="text" class="form-control" id="category" value="@Model.Category" readonly></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        
+                        <div class="tab-pane fade" id="pricing" role="tabpanel" aria-labelledby="pricing-tab">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Cost Price</th>
+                                        <th>Selling Price</th>
+                                        <th>Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="number" step="0.01" class="form-control" id="costPrice" value="@Model.CostPrice" readonly></td>
+                                        <td><input type="number" step="0.01" class="form-control" id="sellingPrice" value="@Model.SellingPrice" readonly></td>
+                                        <td><input type="text" class="form-control" id="location" value="@Model.Location" readonly></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                       
+                        <div class="tab-pane fade" id="stock" role="tabpanel" aria-labelledby="stock-tab">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Quantity on Hand</th>
+                                        <th>Reorder Level</th>
+                                        <th>Reorder Quantity</th>
+                                        <th>Lead Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="number" class="form-control" id="quantityOnHand" value="@Model.QuantityOnHand" readonly></td>
+                                        <td><input type="number" class="form-control" id="reorderLevel" value="@Model.ReorderLevel" readonly></td>
+                                        <td><input type="number" class="form-control" id="reorderQuantity" value="@Model.ReorderQuantity" readonly></td>
+                                        <td><input type="text" class="form-control" id="leadTime" value="@Model.LeadTime" readonly></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+            </div>
+
+            </div>
+           
+                <div class="btn-container">
+                    <a asp-action="PreRequisitionList" asp-controller="Home" class="btn btn-primary">Back</a>
+                </div>
+
+    </div>
+
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+

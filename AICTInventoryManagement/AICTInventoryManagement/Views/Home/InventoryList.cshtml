@@ -1,0 +1,170 @@
+﻿@model IEnumerable<AICTInventoryManagement.Models.Inventory>
+@{
+    var deleteMessage = ViewBag.DeleteMessage as string;
+    string loggedInEmpCode = Context.Session.GetString("EmpCode");
+    string loggedInRole = Context.Session.GetString("role");
+}
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+
+
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.0/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css">
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+
+
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
+
+<style>
+    .dt-button {
+        background-color: red;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        margin: 5px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+        .dt-button:hover {
+            background-color: darkred;
+        }
+
+    .edit-btn, .save-btn {
+        background: none; 
+        border: none; 
+        color: #007bff; 
+        font-size: 18px; 
+        cursor: pointer; 
+        padding: 5px 10px; 
+        transition: color 0.3s ease;
+    }
+
+        .edit-btn:hover, .save-btn:hover {
+            color: #0056b3; 
+        }
+</style>
+<h1 style="text-align:center;">Inventory Items</h1>
+
+<table id="productsTable" class="display">
+    <thead style="text-align:center;">
+        <tr>
+            <th>Item Code</th>
+            <th>Items</th>
+            <th>Quantity</th>
+            <th>Measurement Unit</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody style="text-align:center;">
+        @foreach (var requisition in Model)
+        {
+            <tr data-id="@requisition.Id">
+                <td>@requisition.ItemCode</td>
+                <td>@requisition.Items</td>
+                <td class="editable">
+                    <span class="quantity-text">@requisition.Quantity</span>
+                    <input type="number" class="quantity-input" value="@requisition.Quantity" style="display:none; width: 80px;" />
+                </td>
+                <td>@requisition.MeasurementUnit</td>
+                <td>
+                  
+                    <button type="button" class="edit-btn">
+                        <i class="fas fa-edit"></i> 
+                    </button>
+
+                    <button type="button" class="save-btn" style="display:none;">
+                        <i class="fas fa-save"></i>
+                    </button>    
+
+                    <form action="/Home/UpdateQuantity" method="post" class="update-quantity-form" style="display:none;">
+                        <input type="hidden" name="id" value="@requisition.Id" />
+                        <input type="hidden" name="quantity" class="hidden-quantity" />
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="ManageInventory" asp-controller="Home" class="btn btn-primary mt-3">Add New Item</a>
+
+
+<script>
+    $(document).ready(function () {
+        $('#productsTable').DataTable();
+    });
+
+    $('#productsTable').DataTable({
+        paging: true,
+        searching: true,
+        ordering: false,
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excel',
+                text: '<i class="fas fa-file-excel"></i> Excel',
+                titleAttr: 'Export to Excel'
+            },
+            {
+                extend: 'pdf',
+                text: '<i class="fas fa-download"></i> Download',
+                titleAttr: 'Download as PDF'
+            },
+            {
+                extend: 'print',
+                text: '<i class="fas fa-print"></i> Print',
+                titleAttr: 'Print Table'
+            }
+        ]
+    });
+
+    
+    $('.edit-btn').on('click', function () {
+        var row = $(this).closest('tr');
+        var quantityText = row.find('.quantity-text');
+        var quantityInput = row.find('.quantity-input');
+        var saveButton = row.find('.save-btn');
+        var form = row.find('.update-quantity-form');
+
+        
+        quantityText.hide();
+        quantityInput.show().focus();
+
+       
+        saveButton.show();
+
+        
+        saveButton.on('click', function () {
+           
+            var newQuantity = quantityInput.val();
+            row.find('.hidden-quantity').val(newQuantity);
+
+             
+            form.submit();
+        });
+    });
+   
+    
+</script>
+
+
